@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css"/>
+
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='normalize.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='JSONTree.css') }}">
+    <script src="{{ url_for('static', filename='d3.v3.js') }}" type="text/javascript" charset="utf-8"></script>
+
+</head>
+<body>
+
+<div class="container-fluid">
+    <center><h1>SQL Analyser</h1></center>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <form id="myForm" action="." method="POST">
+                <div class="form-group">
+                    <label for="sql">SQL:</label>
+                    <span id="lineNo" style="float: right;margin-right: 10px;"></span>
+                    <textarea onkeyup="getLineNumber(this, document.getElementById('lineNo'));"
+                              onmouseup="this.onkeyup();" class="form-control lined" style="height:400px" id="sql"
+                              name="sql">{{ sql }}</textarea>
+                </div>
+                <input type="submit" name="my-form" value="Send >>" id="sendButton" class="btn btn-success"
+                       style="width:100%">
+
+            </form>
+        </div>
+        <div class="col-sm-6">
+            <form>
+                <div class="form-group">
+                    <label for="sql">JSON:</label>
+                    <textarea readonly="readonly" onclick="this.focus();this.select()" class="form-control lined"
+                              rows="5" style="height:450px" id="json"
+                              name="sql">{{ json }}</textarea>
+                </div>
+
+            </form>
+        </div>
+        <div class="col-sm-12">
+            <div>
+                <center>
+                    <button class="btn btn-info" data-toggle="modal" data-target="#tables_used">Tables Used</button>
+                    <button class="btn btn-info" data-toggle="modal" data-target="#columns_details">Columns Details
+                    </button>
+                    <button class="btn btn-info" data-toggle="modal" data-target="#tree">Tree</button>
+                    <button class="btn btn-info" data-toggle="modal" data-target="#tree_graph">Tree Graph</button>
+                    <button class="btn btn-info" data-toggle="modal" data-target="#table_graph">Table Graph</button>
+                </center>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="columns_details" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Tables Used</h4>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    {%for k in columns%}
+
+                        <div class="panel-group">
+                            <div class="panel panel-default">
+                                <div class="panel-heading" data-toggle="collapse" href="#collapse1">
+                                    {{k}}
+                                </div>
+                                {%for i in columns[k]%}
+                                <div id="collapse1" class="panel-collapse collapse">
+                                    <div class="panel-body">{{i}}</div>
+                                </div>
+                                {%endfor%}
+                            </div>
+                        </div>
+
+                    {%endfor%}
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal fade" id="tables_used" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Tables Used</h4>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    {%for i in tables_used%}
+                    <li class="list-group-item">{{i}}</li>
+                    {%endfor%}
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="tree" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Tree Structure</h4>
+            </div>
+            <div class="modal-body">
+                <div id="html_list" style="display:none">{{html_list}}</div>
+
+                <div id="jstree"></div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal fade" id="tree_graph" role="dialog">
+    <div class="modal-dialog" style="width:100%; margin:0px">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Tree Graph</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <textarea id="jsoncon" style="display:none">{{json}}</textarea>
+                    <button type="button" class="btn btn-success" id="visualize">Visualize</button>
+                    <label>
+                        <input type="radio" name="vertical_horizontal" value="vertical" checked="true"/> Vertical
+                    </label>
+                    <label>
+                        <input type="radio" name="vertical_horizontal" value="horizontal"/>Horizontal
+                    </label>
+                    <div style="float:right; padding-right: 20px"><em>(Zoom and Drag Available)</em></div>
+                </div>
+                <div id="jsontree"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal fade" id="table_graph" role="dialog">
+    <div class="modal-dialog" style="width:100%; margin:0px">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Table Graph</h4>
+            </div>
+            <div class="modal-body">
+                <div id="table" style="display:none;">{{ processed_text }}</div>
+                <div id="outputTable"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!--<script>-->
+<!--function var1() {-->
+<!--var htmllist = document.getElementById("jstree").value;-->
+<!--var strMessage1 = document.getElementById("jstree") ;-->
+<!--strMessage1.innerHTML = htmllist;-->
+<!--}-->
+
+<!--window.onload = var1;-->
+<!--</script>-->
+<script>
+  $(function () {
+    // 6 create an instance when the DOM is ready
+    $('#jstree').jstree();
+  });
+
+</script>
+
+<script>
+    function getLineNumber(textarea, indicator) {
+
+        indicator.innerHTML = textarea.value.substr(0, textarea.selectionStart).split("\n").length;
+    }
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+<!--<script type="text/javascript" src="{{ url_for('static', filename='jquery-linedtextarea.js') }}"></script>-->
+<script type="text/javascript" src="{{ url_for('static', filename='convert.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='JSONTree.js') }}"></script>
+</body>
+</html>

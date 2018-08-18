@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>Online JSON to Tree Diagram Converter</title>
+
+<link rel="stylesheet" href="css/vtree.css" type="text/css"/>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  ></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="dist/vtree.js"></script>
+
+<!-- How to use debug mode.
+  1. open browser's developer tools.
+  2. input the following command.
+     vt.debug(true).update()
+-->
+
+<script type="text/javascript">
+
+
+var vt;
+
+window.onload = function () {
+  var container = document.getElementById("container");
+  var msg = document.getElementById("msg");
+  vt = new VTree(container);
+  var reader = new VTree.reader.Object();
+
+  var sqljson;
+$('#go-button').click(function(){
+  var s = document.getElementById("from-text").value;
+
+  var settings = {
+  "async": true,
+  "crossDomain": true,
+  "url": "http://127.0.0.1:5000/sql-visualizer",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json",
+    "Cache-Control": "no-cache",
+    "Postman-Token": "b5ebe69f-6fa6-471b-8278-f1a39fd872eb"
+  },
+  "processData": false,
+  "data": "test"
+}
+
+$.ajax(settings).done(function (response) {
+  updateTree(response);
+});
+
+});
+
+  function updateTree(sqljson) {
+    var s = document.getElementById("from-text").value;
+    // var s = sqljson;
+    msg.innerHTML = '';
+    // alert(data)
+    try {
+      var jsonData = JSON.parse(s);
+    } catch (e) {
+      msg.innerHTML = 'JSON parse error: ' + e.message;
+    }
+
+    var data = reader.read(jsonData);
+
+    vt.data(data)
+      .update();
+  }
+
+  // document.getElementById("go-button").onclick = updateTree;
+  // updateTree();
+};
+
+</script>
+
+</head>
+
+<body>
+  <div class="container">
+
+
+    <p>converts SQL strings into tree diagrams.</p>
+
+    <div style="margin-top: 1em;">
+      <textarea id="from-text" rows="10" style="width: 99%" placeholder="Enter Your SQL Here" >select * from ram</textarea>
+    </div>
+
+    <div style="margin-top: 1em;">
+      <input id="go-button" type="button" value="Visualize">
+    </div>
+
+    <div id="msg" style="color: red;"></div>
+
+    <div id="container"></div>
+
+
+  </div>
+</body>
+
+</html>
