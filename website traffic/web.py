@@ -8,7 +8,7 @@ chrome_options.add_argument("--headless")
 
 from multiprocessing import Pool
 
-url = "http://www.artculturefestival.in"
+url = "your website url"
 
 
 for i in range(10):
