@@ -7,7 +7,7 @@ driver = webdriver.Chrome()
 driver.get("https://www.facebook.com/")
 
 
-page = "https://www.facebook.com/artnculturefest/"
+page = "Your FB Page Url"
 
 f=open("fb_list.txt","r")
 data = f.read().split("\n")
